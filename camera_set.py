@@ -6,7 +6,7 @@ from keras.models import load_model
 import pickle
 import PySimpleGUI as sg
 
-window = sg.Window('Demo Application', [[sg.Image(filename='', key='image')], [sg.Button('Capture'), sg.Button('Record')]], location=(800,400))
+window = sg.Window('Demo Application', [[sg.Image(filename='', key='image')], [sg.Button('Capture'), sg.Button('Record'), sg.Button('Stop Recording')]], location=(800,400))
 
 def face_embedding(model, face_array):
     face_array = face_array.astype('float32')
@@ -25,8 +25,14 @@ model = load_model('facenet_keras.h5')
 loaded_model = pickle.load(open('trained_model.sav','rb'))
 label_model = pickle.load(open('label_model.sav', 'rb'))
 
+#counter for labeling the file
 img_counter=0
 rec_counter=0
+
+isRecording = False
+
+file_video_name = "./video_saved/video_"+str(rec_counter)+".avi"
+out = cv2.VideoWriter(file_video_name, cv2.VideoWriter_fourcc(*'MJPG'), 25, (640,480))
 while(True):
     ret, frame = cap.read()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -56,12 +62,24 @@ while(True):
         cv2.rectangle(frame, (x1,y1), (x2,y2), (255,0,0), 1)
 
 
+    if isRecording:
+        out.write(frame)
     event, values = window.Read(timeout=20, timeout_key='timeout')
     if event is None: break
     if event == 'Capture':
         cv2.imwrite("./image_saved/image_"+str(img_counter)+".jpg", frame)
         sg.popup('Image Saved as '+"image_"+str(img_counter)+".jpg")
         img_counter += 1
+    if event == 'Record':
+        isRecording = True
+        sg.popup('Start Recording')
+    if event == 'Stop Recording':
+        sg.popup_error('The Video is not recording yet')
+        if isRecording:
+            sg.popup('Video saved as video_'+str(rec_counter)+'.avi')
+            out.release()
+            rec_counter += 1
+            isRecording = False
 
     window.FindElement('image').Update(data=cv2.imencode('.png', frame)[1].tobytes())
 
