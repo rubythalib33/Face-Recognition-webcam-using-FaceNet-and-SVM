@@ -67,10 +67,13 @@ while(True):
         cv2.imwrite("./image_saved/image_"+str(file_date_name)+".jpg", frame)
         sg.popup('Image Saved as '+"./image_saved/image_"+str(file_date_name)+".jpg")
     if event == 'Record':
-        file_video_name = "./video_saved/video_"+str(file_date_name)+".avi"
-        out = cv2.VideoWriter(file_video_name, cv2.VideoWriter_fourcc(*'MJPG'), 25, (640,480))
-        isRecording = True
-        sg.popup('Start Recording')
+        if isRecording:
+            sg.popup('The video is still recording')
+        else:
+            file_video_name = "./video_saved/video_"+str(file_date_name)+".avi"
+            out = cv2.VideoWriter(file_video_name, cv2.VideoWriter_fourcc(*'MJPG'), 25, (640,480))
+            isRecording = True
+            sg.popup('Start Recording')
     if event == 'Stop Recording':
         if isRecording:
             sg.popup('Video saved as '+file_video_name+'.avi')
