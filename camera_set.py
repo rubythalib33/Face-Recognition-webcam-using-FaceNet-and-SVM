@@ -61,6 +61,7 @@ while(True):
 
     if isRecording:
         out.write(frame)
+        cv2.ellipse(frame, (20,20), (10,10), 0, 0, 360, (0,0,255), -1)
     event, values = window.Read(timeout=20, timeout_key='timeout')
     if event is None: break
     if event == 'Capture':
