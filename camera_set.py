@@ -5,6 +5,7 @@ from PIL import Image
 from keras.models import load_model
 import pickle
 import PySimpleGUI as sg
+import datetime
 
 window = sg.Window('Demo Application', [[sg.Image(filename='', key='image')], [sg.Button('Capture'), sg.Button('Record'), sg.Button('Stop Recording')]], location=(800,400))
 
@@ -25,15 +26,11 @@ model = load_model('facenet_keras.h5')
 loaded_model = pickle.load(open('trained_model.sav','rb'))
 label_model = pickle.load(open('label_model.sav', 'rb'))
 
-#counter for labeling the file
-img_counter=0
-rec_counter=0
-
 isRecording = False
 
-file_video_name = "./video_saved/video_"+str(rec_counter)+".avi"
-out = cv2.VideoWriter(file_video_name, cv2.VideoWriter_fourcc(*'MJPG'), 25, (640,480))
 while(True):
+    file_date_name = datetime.datetime.now()
+    file_date_name = file_date_name.strftime("%d%m%Y%H%M%S%f")
     ret, frame = cap.read()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     result = detector.detect_faces(frame)
@@ -67,19 +64,20 @@ while(True):
     event, values = window.Read(timeout=20, timeout_key='timeout')
     if event is None: break
     if event == 'Capture':
-        cv2.imwrite("./image_saved/image_"+str(img_counter)+".jpg", frame)
-        sg.popup('Image Saved as '+"image_"+str(img_counter)+".jpg")
-        img_counter += 1
+        cv2.imwrite("./image_saved/image_"+str(file_date_name)+".jpg", frame)
+        sg.popup('Image Saved as '+"./image_saved/image_"+str(file_date_name)+".jpg")
     if event == 'Record':
+        file_video_name = "./video_saved/video_"+str(file_date_name)+".avi"
+        out = cv2.VideoWriter(file_video_name, cv2.VideoWriter_fourcc(*'MJPG'), 25, (640,480))
         isRecording = True
         sg.popup('Start Recording')
     if event == 'Stop Recording':
-        sg.popup_error('The Video is not recording yet')
         if isRecording:
-            sg.popup('Video saved as video_'+str(rec_counter)+'.avi')
+            sg.popup('Video saved as '+file_video_name+'.avi')
             out.release()
-            rec_counter += 1
             isRecording = False
+        else:
+            sg.popup_error('The Video is not recording yet')
 
     window.FindElement('image').Update(data=cv2.imencode('.png', frame)[1].tobytes())
 
