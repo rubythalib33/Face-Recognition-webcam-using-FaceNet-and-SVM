@@ -4,6 +4,9 @@ from mtcnn.mtcnn import MTCNN
 from PIL import Image
 from keras.models import load_model
 import pickle
+import PySimpleGUI as sg
+
+window = sg.Window('Demo Application', [[sg.Image(filename='', key='image')], [sg.Button('Capture'), sg.Button('Record')]], location=(800,400))
 
 def face_embedding(model, face_array):
     face_array = face_array.astype('float32')
@@ -13,11 +16,17 @@ def face_embedding(model, face_array):
     yhat = model.predict(samples)
     return yhat[0]
 
+def capture_frame(frame, counter):
+    cv2.imwrite("image_"+str(counter), frame)
+
 cap = cv2.VideoCapture(0)
 detector = MTCNN()
 model = load_model('facenet_keras.h5')
 loaded_model = pickle.load(open('trained_model.sav','rb'))
 label_model = pickle.load(open('label_model.sav', 'rb'))
+
+img_counter=0
+rec_counter=0
 while(True):
     ret, frame = cap.read()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -47,9 +56,14 @@ while(True):
         cv2.rectangle(frame, (x1,y1), (x2,y2), (255,0,0), 1)
 
 
-    cv2.imshow('frame', frame)
-    if cv2.waitKey(20) & 0xFF == ord('q'):
-        break
+    event, values = window.Read(timeout=20, timeout_key='timeout')
+    if event is None: break
+    if event == 'Capture':
+        cv2.imwrite("./image_saved/image_"+str(img_counter)+".jpg", frame)
+        sg.popup('Image Saved as '+"image_"+str(img_counter)+".jpg")
+        img_counter += 1
+
+    window.FindElement('image').Update(data=cv2.imencode('.png', frame)[1].tobytes())
 
 cap.release()
 cv2.destroyAllWindows()
