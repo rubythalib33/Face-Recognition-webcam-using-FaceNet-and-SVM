@@ -68,7 +68,7 @@ while(True):
         sg.popup('Image Saved as '+"./image_saved/image_"+str(file_date_name)+".jpg")
     if event == 'Record':
         if isRecording:
-            sg.popup('The video is still recording')
+            sg.popup_error('The video is still recording')
         else:
             file_video_name = "./video_saved/video_"+str(file_date_name)+".avi"
             out = cv2.VideoWriter(file_video_name, cv2.VideoWriter_fourcc(*'MJPG'), 25, (640,480))
